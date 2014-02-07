@@ -15,16 +15,18 @@ class Metric(object):
     class TypeException(Exception):
         pass
     
-    def __init__(self, name, value, type, units,
+    def __init__(self, host, name, value, type, units,
                  tn, tmax, dmax, slope, source,
                  extras={}):
+        
+        self.host = host
         self.name = name
         
-        if not type in self.TYPES:
-            raise Metric.TypeException(type)
-        self.value = self.TYPES[type.lower()](value)
         self.type = type
         self.units = units
+        if not type in self.TYPES:
+            raise Metric.TypeException(type)
+        self.value = self.to_python(value)
         
         self.tn = tn
         self.tmax = tmax
@@ -33,6 +35,9 @@ class Metric(object):
         self.source = source
         
         self.extras = {}
+    
+    def to_python(self, value):
+        return self.TYPES[self.type.lower()](value)
     
     def __cmp__(self, other):
         value = other
@@ -58,8 +63,9 @@ class Metric(object):
 
 class Host(object):
     
-    def __init__(self, name, ip, reported, tn, tmax, dmax, gmond_started,
+    def __init__(self, cluster, name, ip, reported, tn, tmax, dmax, gmond_started,
                  location=None):
+        self.cluster = cluster
         self.name = name
         self.ip = ip
         self.tn = tn
@@ -92,10 +98,11 @@ class Host(object):
 
 
 class Cluster(object):
-    def __init__(self, name, localtime,
+    def __init__(self, grid, name, localtime,
                  owner=None,
                  url=None,
                  latlong=None):
+        self.grid = grid
         self.name = name
         self.localtime = localtime
         self.owner = owner

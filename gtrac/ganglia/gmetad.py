@@ -12,7 +12,7 @@ def get_xml_metas(xml):
                     authority=node.attrib['AUTHORITY'])
         return grid
     
-    def parse_cluster(node):
+    def parse_cluster(node, grid):
         ts = float(node.attrib['LOCALTIME'])
         attrs = {}
         
@@ -23,12 +23,13 @@ def get_xml_metas(xml):
         if not node.attrib['LATLONG'] == NULL:
             attrs['latlong'] = node.attrib['LATLONG']
         
-        cluster = Cluster(node.attrib['NAME'],
+        cluster = Cluster(grid,
+                          node.attrib['NAME'],
                           datetime.fromtimestamp(ts),
                           **attrs)
         return cluster
     
-    def parse_host(node):
+    def parse_host(node, cluster):
         attrs = {}
         
         timestamp = float(node.attrib['REPORTED'])
@@ -40,7 +41,8 @@ def get_xml_metas(xml):
         if not node.attrib['LOCATION'] == NULL:
             attrs['location'] = node.attrib['LOCATION']
         
-        host = Host(node.attrib['NAME'],
+        host = Host(cluster,
+                    node.attrib['NAME'],
                     node.attrib['IP'],
                     reported,
                     int(node.attrib['TN']),
@@ -50,12 +52,13 @@ def get_xml_metas(xml):
                     **attrs)
         return host
     
-    def parse_metric(node):
+    def parse_metric(node, host):
         extras = {}
         for elt in node.find('EXTRA_DATA'):
             extras[elt.attrib['NAME'].lower()] = elt.attrib['VAL']
         
-        metric = Metric(node.attrib['NAME'],
+        metric = Metric(host,
+                        node.attrib['NAME'],
                         node.attrib['VAL'],
                         node.attrib['TYPE'],
                         node.attrib['UNITS'],
@@ -77,15 +80,15 @@ def get_xml_metas(xml):
         grids[grid.name] = grid
         
         for clusternode in gridnode:
-            cluster = parse_cluster(clusternode)
+            cluster = parse_cluster(clusternode, grid)
             grid[cluster.name] = cluster
             
             for hostnode in clusternode:
-                host = parse_host(hostnode)
+                host = parse_host(hostnode, cluster)
                 cluster[host.name] = host
                 
                 for metricnode in hostnode:
-                    metric = parse_metric(metricnode)
+                    metric = parse_metric(metricnode, host)
                     host[metric.name] = metric
     return grids
 
