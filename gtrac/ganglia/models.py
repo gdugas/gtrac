@@ -1,5 +1,5 @@
 
-class GMetricValue(object):
+class Metric(object):
     TYPES = {
         'string': str,
         'int8' : int,
@@ -15,26 +15,17 @@ class GMetricValue(object):
     class TypeException(Exception):
         pass
     
-    def __init__(self, value, type, units):
-        if not type in self.TYPES:
-            raise GMetricValue.TypeException(type)
-        self.value = self.TYPES[type.lower()](value)
-        self.type = type
-        self.units = units
-    
-    def __str__(self):
-        return "%s %s" % (str(self.value), self.units)
-    
-    def __unicode__(self):
-        return "%s %s" % (str(self.value), self.units)
-
-
-class Metric(object):
     def __init__(self, name, value, type, units,
                  tn, tmax, dmax, slope, source,
                  extras={}):
         self.name = name
-        self.value = GMetricValue(value, type, units)
+        
+        if not type in self.TYPES:
+            raise Metric.TypeException(type)
+        self.value = self.TYPES[type.lower()](value)
+        self.type = type
+        self.units = units
+        
         self.tn = tn
         self.tmax = tmax
         self.dmax = dmax
@@ -43,11 +34,26 @@ class Metric(object):
         
         self.extras = {}
     
+    def __cmp__(self, other):
+        value = other
+        
+        if isinstance(other, Metric):
+            value = other.value
+        
+        if self.value < value:
+            return -1
+        elif self.value == value:
+            return 0
+        elif self.value > value:
+            return 1
+        else:
+            return -1
+    
     def __unicode__(self):
-        return self.name
+        return "%s %s" % (str(self.value), self.units)
     
     def __str__(self):
-        return self.name
+        return "%s %s" % (str(self.value), self.units)
 
 
 class Host(object):
