@@ -31,17 +31,15 @@ class GtracConf(object):
                 triggers = self.parse_trigger_values(value)
                 self.triggers[metric] = triggers
     
-    def get_triggers(self, metric,
-                     grid=None,
-                     cluster=None,
-                     host=None):
+    def get_triggers(self, metric):
+        host = metric.host
+        cluster = host.cluster
+        grid = cluster.grid
+        
         pattern = metric.name
-        if grid:
-            pattern += '.' + str(grid)
-            if cluster:
-                pattern += '.' + str(cluster)
-                if host:
-                    pattern += '.' + str(host)
+        pattern += '.' + str(grid)
+        pattern += '.' + str(cluster)
+        pattern += '.' + str(host)
         
         valids = {}
         for key in self.triggers.keys():
@@ -51,3 +49,17 @@ class GtracConf(object):
         if len(valids) > 0:
             key = sorted(valids, reverse=True)[0]
             return self.triggers[key]
+    
+    def get_hostname(self, default=None):
+        hostname = self.env.config.get('gtrac', 'host')
+        if len(hostname) > 0:
+            return hostname
+        else:
+            return default
+    
+    def get_port(self, default=8651):
+        port = self.env.config.getint('gtrac', 'port')
+        if port > 0:
+            return port
+        else:
+            return default
