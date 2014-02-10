@@ -1,7 +1,8 @@
 
 from gtrac.triggers import Trigger
 
-class GtracConf(object):
+class TriggerParser(object):
+    
     def __init__(self, env):
         self.env = env
         self.triggers = {}
@@ -9,9 +10,9 @@ class GtracConf(object):
     
     def format_metric_key(self, conf_key):
         splitted = conf_key.split('.')
-        if len(splitted) >= 2:
-            metric_name = splitted[1]
-            options = '.'.join(splitted[2:])
+        if len(splitted) >= 3:
+            metric_name = splitted[2]
+            options = '.'.join(splitted[3:])
             if not options == '':
                 return "%s.%s" % (metric_name, options)
             else:
@@ -26,7 +27,7 @@ class GtracConf(object):
             return
         
         for key, value in self.env.config.options('gtrac'):
-            if key.startswith('triggers'):
+            if key.startswith('triggers.metric'):
                 metric = self.format_metric_key(key)
                 triggers = self.parse_trigger_values(value)
                 self.triggers[metric] = triggers
@@ -49,17 +50,3 @@ class GtracConf(object):
         if len(valids) > 0:
             key = sorted(valids, reverse=True)[0]
             return self.triggers[key]
-    
-    def get_hostname(self, default=None):
-        hostname = self.env.config.get('gtrac', 'host')
-        if len(hostname) > 0:
-            return hostname
-        else:
-            return default
-    
-    def get_port(self, default=8651):
-        port = self.env.config.getint('gtrac', 'port')
-        if port > 0:
-            return port
-        else:
-            return default

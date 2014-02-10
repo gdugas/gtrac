@@ -1,6 +1,6 @@
 from trac.core import Component, implements
 from trac.admin import IAdminCommandProvider
-from gtrac.conf import GtracConf
+from gtrac.triggers import TriggerParser
 from gtrac.ganglia.gmetad import get_daemon_metas
 from gtrac.tracker import check_metric, check_host
 
@@ -18,10 +18,10 @@ class Console(Component):
     
     def run_monitoring(self):
         
-        gtrac_conf = GtracConf(self.env)
+        parser = TriggerParser(self.env)
         
-        hostname = gtrac_conf.get_hostname()
-        port = gtrac_conf.get_port()
+        hostname = self.env.config.get('gtrac', 'host')
+        port = self.env.config.getint('gtrac', 'port') or 8651
         
         grids = get_daemon_metas(hostname, port)
         
@@ -38,7 +38,7 @@ class Console(Component):
                     check_host(self.env, host)
                     for metric_name in host:
                         metric = host[metric_name]
-                        triggers = gtrac_conf.get_triggers(metric) \
+                        triggers = parser.get_triggers(metric) \
                                     or []
                         # Check metric an submit ticket if needed
                         check_metric(self.env, metric, triggers)

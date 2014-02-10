@@ -1,10 +1,16 @@
 from gtrac.ganglia.models import Metric
-from gtrac.utils import cmp
+from gtrac.triggers import cmp
 
 class Trigger(object):
     
     class ComparisonException(Exception):
         pass
+    
+    def __init__(self, priority, comparison, treshold, *args):
+        self.comparison = comparison
+        self.treshold = treshold
+        self.priority = priority
+        self.args = args
     
     @staticmethod
     def get_builtin_cmp(cmp_name):
@@ -27,17 +33,12 @@ class Trigger(object):
         else:
             return Trigger.get_builtin_cmp(self.comparison)
     
-    def __init__(self, comparison, treshold, priority):
-        self.comparison = comparison
-        self.treshold = treshold
-        self.priority = priority
-    
     def __call__(self, metric):
         treshold = self.treshold
         if isinstance(metric, Metric):
             treshold = metric.to_python(treshold)
         
-        return self.get_cmp_function()(metric, treshold)
+        return self.get_cmp_function()(metric, treshold, *self.args)
     
     def __unicode__(self):
         return "%s:%s:%s" % (self.comparison,

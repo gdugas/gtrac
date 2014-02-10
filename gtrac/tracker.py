@@ -15,7 +15,7 @@ class Tracker(object):
         self.component = component
     
     def component_str(self):
-        raise Exception()
+        raise NotImplementedError()
     
     def get_new_ticket(self):
         t = Ticket(self.env)
@@ -95,7 +95,6 @@ class HostTracker(Tracker):
 def check_metric(env, metric, triggers):
     tracker = MetricTracker(env, metric)
     ticket = tracker.last_open_ticket()
-    
     # Exit and close ticket if no trigger available
     if len(triggers) == 0:
         if ticket:
@@ -110,7 +109,6 @@ def check_metric(env, metric, triggers):
             triggered = True
             if ticket:
                 if not trigger.priority == ticket['priority']:
-                    print "s-2B"
                     comment = 'Update priority'
                     ticket['severity'] = str(metric.value)
                     ticket['priority'] = trigger.priority
