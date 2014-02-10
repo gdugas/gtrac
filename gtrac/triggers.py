@@ -1,3 +1,4 @@
+from gtrac.ganglia.models import Metric
 from gtrac.utils import cmp
 
 class Trigger(object):
@@ -32,7 +33,10 @@ class Trigger(object):
         self.priority = priority
     
     def __call__(self, metric):
-        treshold = metric.to_python(self.treshold)
+        treshold = self.treshold
+        if isinstance(metric, Metric):
+            treshold = metric.to_python(treshold)
+        
         return self.get_cmp_function()(metric, treshold)
     
     def __unicode__(self):

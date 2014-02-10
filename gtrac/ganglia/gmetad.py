@@ -3,6 +3,9 @@ from datetime import datetime
 
 NULL = 'unspecified'
 
+class ConnectionError(Exception):
+    pass
+
 def get_xml_metas(xml):
     
     def parse_grid(node):
@@ -97,7 +100,10 @@ def get_daemon_metas(hostname, port=8651):
     import socket
     host = socket.gethostbyname(hostname)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
+    try:
+        s.connect((host, port))
+    except:
+        raise ConnectionError("%s:%d" % (hostname, port))
     
     xml = ''
     data = s.recv(4096)
